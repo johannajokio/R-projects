@@ -1,0 +1,88 @@
+#This script produces a first look of some hospital data
+
+#load packages
+
+# Install pacman ("package manager") if needed
+if (!require("pacman")) install.packages("pacman")
+
+# pacman must already be installed; then load contributed
+pacman::p_load(magrittr, pacman, rio, tidyverse)
+
+# Reading SPSS data file into R
+
+library(foreign)    
+
+dat <- read.spss("Demo data.sav", to.data.frame=TRUE)
+attach(dat)
+
+
+## Random sample of 400 patients
+
+set.seed(1)
+
+mydata <-dat[sample(nrow(dat), 400), ]
+
+
+###Use variables education and typeofadmission. 
+# make a two-way table. 
+
+mydata %>%
+  select(education, typeofadmission) %>%
+  table()
+
+
+###Produce frequency tables with percentages.
+
+ct <- table(mydata$education, mydata$typeofadmission)
+ct
+
+ct %>%
+  prop.table(1) %>%       # 1 is for row percentages, 2 is column
+  round(2) %>%            # round to 2 figures
+  multiply_by(100)
+
+
+###Use row percentages and standardized residuals and describe differences between education groups in typeofadmission
+
+# Chi-squared test and std residuals
+
+tchi <- chisq.test(ct)
+tchi
+
+tchi$stdres
+
+##Descriptive statistics for a numerical variable on a scale 1-5
+
+#Summarise variable
+
+summary(mydata$Pers_A)
+typeof()   # double
+print(class(mydata$Pers_A))   # numeric
+
+
+#histogram
+
+hist(mydata$Pers_A, xlab = "Pers_A", col = "blue" , border = "red", breaks = 10)
+  
+#boxplot to compare two variables
+
+boxplot(Pers_A, Pers_B, data = mydata,
+          xlab = "Pers_A / Pers_B", col = c("green", "yellow"), names = c("A","B"))
+
+#scatterplot
+
+plot(x = mydata$Pers_A, y = mydata$Pers_B, 
+     xlab = "A",
+     ylab = "B",
+     main = "A vs B",
+     col = "red"
+     )
+ 
+# Clear data
+rm(list = ls())  # Removes all objects from environment
+
+# Clear packages
+p_unload(all)  # Remove all contributed packages
+
+# Clear console
+cat("\014")  # Mimics ctrl+L
